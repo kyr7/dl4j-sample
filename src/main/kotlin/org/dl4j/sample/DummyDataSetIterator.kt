@@ -1,4 +1,4 @@
-package org.jb.learning.sample
+package org.dl4j.sample
 
 import org.deeplearning4j.datasets.iterator.DummyPreProcessor
 import org.nd4j.linalg.dataset.DataSet

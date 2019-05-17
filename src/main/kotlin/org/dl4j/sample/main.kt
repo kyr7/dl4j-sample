@@ -1,4 +1,4 @@
-package org.jb.learning.sample
+package org.dl4j.sample
 
 import org.datavec.api.records.reader.impl.csv.CSVRecordReader
 import org.datavec.api.split.FileSplit

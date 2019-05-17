@@ -1,0 +1,39 @@
+buildscript {
+    ext {
+        dl4j_version = "1.0.0-beta4"
+    }
+}
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.3.21'
+}
+
+group 'org.jb'
+version '1.0-SNAPSHOT'
+
+dl4j_version = "1.0.0-beta4"
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url 'https://maven.google.com/'
+    }
+    maven {
+        url 'https://google.bintray.com/tensorflow'
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    compile "org.tensorflow:tensorflow:1.13.1"
+    compile "org.deeplearning4j:deeplearning4j-core:${dl4j_version}"
+    compile "org.nd4j:nd4j-native-platform:${dl4j_version}"
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+compileTestKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}

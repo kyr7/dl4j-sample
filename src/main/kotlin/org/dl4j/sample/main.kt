@@ -15,19 +15,20 @@ import org.nd4j.linalg.dataset.DataSet
 import org.nd4j.linalg.learning.config.Nesterovs
 import org.nd4j.linalg.lossfunctions.LossFunctions
 import java.io.File
-import java.lang.IllegalStateException
+
 
 
 fun main(args: Array<String>) {
-    val dataDirectory = args.firstOrNull() ?: throw IllegalStateException("Data directory is not provided")
+    val dataDirectory = args.firstOrNull() ?: "data"
     train(dataDirectory)
 }
 
 private fun train(dataDirectoryString: String) {
     val rngSeed = 1337L
-    val inputsCount = 4
+    val inputsCount = 64
     val labelsCount = 4
-    val batchSize = 100
+    val batchSize = 16
+    val epochs = 2000
 
     @Suppress("SpellCheckingInspection") val dataDirectory = File(dataDirectoryString)
 
@@ -35,7 +36,7 @@ private fun train(dataDirectoryString: String) {
     for (file in dataDirectory.listFiles()) {
         val recordReader = CSVRecordReader(',')
         recordReader.initialize(FileSplit(file))
-        val iterator = RecordReaderDataSetIterator(recordReader, batchSize, 4, 7, true)
+        val iterator = RecordReaderDataSetIterator(recordReader, batchSize, 64, 4, 2000)
         dataSets.add(iterator.next())
     }
 
@@ -52,20 +53,28 @@ private fun train(dataDirectoryString: String) {
     val conf = NeuralNetConfiguration.Builder()
         .seed(rngSeed) //include a random seed for reproducibility
         // use stochastic gradient descent as an optimization algorithm
-        .updater(Nesterovs(0.006, 0.9))
+        .updater(Nesterovs(0.02, 0.9))
         .l2(1e-4)
         .list()
         .layer(
             DenseLayer.Builder() //create the first, input layer with xavier initialization
                 .nIn(inputsCount)
-                .nOut(100)
+                .nOut(34)
                 .activation(Activation.RELU)
                 .weightInit(WeightInit.XAVIER)
                 .build()
         )
         .layer(
+            DenseLayer.Builder() //create the first, input layer with xavier initialization
+                .nIn(34)
+                .nOut(20)
+                .activation(Activation.SOFTMAX)
+                .weightInit(WeightInit.XAVIER)
+                .build()
+        )
+        .layer(
             OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD) //create hidden layer
-                .nIn(100)
+                .nIn(20)
                 .nOut(labelsCount)
                 .activation(Activation.SOFTMAX)
                 .weightInit(WeightInit.XAVIER)
@@ -78,7 +87,10 @@ private fun train(dataDirectoryString: String) {
     //print the score with every 1 iteration
     model.setListeners(ScoreIterationListener(1))
 
-    model.fit(trainingData)
+    for (i in 1 .. epochs) {
+        trainingData.shuffle(rngSeed)
+        model.fit(trainingData)
+    }
 
     val iterator = DummyDataSetIterator(testData, labelsCount, inputsCount, batchSize)
     val evaluation = model.evaluate<Evaluation>(iterator)
